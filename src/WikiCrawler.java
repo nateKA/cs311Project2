@@ -27,7 +27,7 @@ public class WikiCrawler
 	HashMap<WebPage, Boolean> topicMap = new HashMap<>();
 	HashMap<Integer, WebPage> loadMap = new HashMap<>();
 	Queue<Pair<WebPage, WebPage>> visitQueue = new LinkedList<>();
-	List<Pair<String, String>> edges = new ArrayList<>();
+	HashMap<Integer, Pair<String, String>> edges = new HashMap<>();
 	PrintWriter out = null;
 	Debugger debugger;
 
@@ -53,6 +53,7 @@ public class WikiCrawler
 		debugger.println(String.format("VISITING: %s",WebUtils.combinePaths(BASE_URL,seedURL)));
 		if(determineValidity(seedPage)){
 			for(String link: seedPage.getLinks()){
+				if(!isValidEdge(seedPage.getURL(), link))continue;
 				addToQueue(seedPage, link);
 				debugger.println(String.format("\tAdded to QUEUE: %s -> %s",seedPage.getURL(), link));
 			}
@@ -75,15 +76,31 @@ public class WikiCrawler
 		visit(to);
 
 		if(determineValidity(to)){
-			edges.add(new Pair(from.getURL(),to.getURL()));
-			out.println(String.format("\t%s %s",from.getURL(),to.getURL()));
-			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from.getURL(),to.getURL()));
+			addEdge(new Pair(from.getURL(),to.getURL()));
 
 			for(String link: to.getLinks()){
+				if(!isValidEdge(to.getURL(), link))continue;
+
 				addToQueue(to,link);
 				debugger.println(String.format("\tAdded to QUEUE: %s -> %s",to.getURL(), link));
 			}
 		}
+	}
+
+	private void addEdge(Pair<String,String> edge){
+		String from = edge.getKey();
+		String to = edge.getValue();
+		int hash = (from+to).hashCode();
+		if(edges.containsKey(hash)){
+			out.println(String.format("%s %s",from,to));
+			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from,to));
+		}
+	}
+	private boolean isValidEdge(String from, String to){
+		return !from.equals(to) && isValidLink(to);
+	}
+	public boolean isValidLink(String link){
+		return !(link.contains("#") || link.contains(":"));
 	}
 
 	private void addToQueue(WebPage from, String toURL){

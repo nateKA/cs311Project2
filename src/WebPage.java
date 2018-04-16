@@ -15,6 +15,7 @@ public class WebPage {
 
     public void download(){
         page = WebUtils.getPageAsString(baseURL, URL);
+        page = page.replaceFirst(".*<[pP]>","");
     }
 
     public String getURL() {
