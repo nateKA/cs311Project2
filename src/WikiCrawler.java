@@ -24,7 +24,7 @@ public class WikiCrawler
 	private int max;
 	private ArrayList<String> topics;
 	HashMap<Integer, WebPage> visited = new HashMap<>();
-	HashMap<WebPage, Boolean> topicMap = new HashMap<>();
+	HashMap<Integer, Boolean> topicMap = new HashMap<>();
 	HashMap<Integer, WebPage> loadMap = new HashMap<>();
 	Queue<Pair<WebPage, WebPage>> visitQueue = new LinkedList<>();
 	HashMap<Integer, Pair<String, String>> edges = new HashMap<>();
@@ -132,14 +132,14 @@ public class WikiCrawler
 	}
 
 	private boolean determineValidity(WebPage page){
-		if(topicMap.containsKey(page)) {
+		if(topicMap.containsKey(page.hashCode())) {
 			debugger.println(String.format("\tPREV DETERMINED %s: %s",(topicMap.get(page)==false)?"INVALID":"VALID",
 					page.getURL()));
 			return topicMap.get(page);
 		}else{
 			boolean valid = page.containsTopics(topics);
-			topicMap.put(page,valid);
-			debugger.println(String.format("\tDETERMINED %s: %s",(topicMap.get(page)==false)?"INVALID":"VALID",
+			topicMap.put(page.hashCode(),valid);
+			debugger.println(String.format("\tDETERMINED %s: %s",(valid)?"INVALID":"VALID",
 					page.getURL()));
 			return valid;
 		}
@@ -150,8 +150,6 @@ public class WikiCrawler
 		ArrayList<String> topics = new ArrayList<>();
 		//topics.add("Iowa State");
 		//topics.add("Cyclones");
-		topics.add("complexity");
-		topics.add("theory");
 		WikiCrawler wc = new WikiCrawler("/wiki/complexity_theory", 100, topics, "WikiISU.txt");
 		wc.crawl();
 	}

@@ -1,3 +1,4 @@
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +19,11 @@ public class WebPage {
     public void download(){
         page = WebUtils.getPageAsString(baseURL, URL);
         page = page.replaceFirst(".*<[pP]>","");
+        if(debugger!=null)
         debugger.println("\tDOWNLOAD #"+(++serverRequests));
         if(serverRequests >= 25){
             try {
+                if(debugger!=null)
                 debugger.println("\tSLEEPING");
                 Thread.sleep(3000);
                 serverRequests = 0;
@@ -57,5 +60,17 @@ public class WebPage {
     @Override
     public int hashCode(){
         return WebUtils.combinePaths(baseURL,URL).hashCode();
+    }
+
+    public static void main(String[] args){
+        WebPage page = new WebPage(WikiCrawler.BASE_URL,"/wiki/Complexity");
+        page.download();
+        try{
+            PrintWriter pw = new PrintWriter("complexity.txt");
+            pw.println(page.getPage());
+            pw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
