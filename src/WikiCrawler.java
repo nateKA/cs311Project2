@@ -11,18 +11,26 @@
 * @author Hugh Potter
 */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import javafx.util.Pair;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.*;
 
 public class WikiCrawler
 {
 	static final String BASE_URL = "https://en.wikipedia.org/";
 	private String seedURL;
 	private int max;
-	private List<String> topics;
-	private String fileName;
-	HashMap<Integer,String> visited = new HashMap<>();
+	private ArrayList<String> topics;
+	HashMap<Integer, WebPage> visited = new HashMap<>();
+	HashMap<WebPage, Boolean> topicMap = new HashMap<>();
+	HashMap<Integer, WebPage> loadMap = new HashMap<>();
+	Queue<Pair<WebPage, WebPage>> visitQueue = new LinkedList<>();
+	List<Pair<String, String>> edges = new ArrayList<>();
+	PrintWriter out = null;
+	Debugger debugger;
+
 
 
 	public WikiCrawler(String seedUrl, int max, ArrayList<String> topics, String fileName)
@@ -31,27 +39,98 @@ public class WikiCrawler
 		this.seedURL = seedUrl;
 		this.max = max;
 		this.topics = topics;
-		this.fileName = fileName;
+		try {
+			out = new PrintWriter(new File(fileName));
+			debugger  = new Debugger("debug.txt");
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
-	public void crawl()
-	{
+	public void crawl() {
 		// implementation
-		String startPage = WebUtils.getPageAsString(BASE_URL,seedURL);
+		WebPage seedPage = new WebPage(BASE_URL,seedURL);
+		debugger.println(String.format("VISITING: %s",WebUtils.combinePaths(BASE_URL,seedURL)));
+		if(determineValidity(seedPage)){
+			for(String link: seedPage.getLinks()){
+				addToQueue(seedPage, link);
+				debugger.println(String.format("\tAdded to QUEUE: %s -> %s",seedPage.getURL(), link));
+			}
+		}
 
+		while(edges.size() < max && !visitQueue.isEmpty()){
+			Pair<WebPage, WebPage> head = visitQueue.remove();
+			WebPage from = head.getKey();
+			WebPage to = head.getValue();
+			crawl(from,to);
+		}
+
+		out.close();
+		debugger.close();
 	}
 
+	private void crawl(WebPage from, WebPage to){
+		if(isVisited(to))return;
+		debugger.println(String.format("VISITING: %s",WebUtils.combinePaths(BASE_URL,to.getURL())));
+		visit(to);
 
+		if(determineValidity(to)){
+			edges.add(new Pair(from.getURL(),to.getURL()));
+			out.println(String.format("\t%s %s",from.getURL(),to.getURL()));
+			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from.getURL(),to.getURL()));
 
-	private boolean visited(String url){
-		return visited.containsKey(url.hashCode());
+			for(String link: to.getLinks()){
+				addToQueue(to,link);
+				debugger.println(String.format("\tAdded to QUEUE: %s -> %s",to.getURL(), link));
+			}
+		}
 	}
+
+	private void addToQueue(WebPage from, String toURL){
+		if(loadMap.containsKey(WebUtils.combinePaths(BASE_URL,toURL).hashCode())) {
+			debugger.println(String.format("\t\tLOADED %s", toURL));
+			visitQueue.add(new Pair(from, loadMap.get(WebUtils.combinePaths(BASE_URL, toURL).hashCode())));
+		}else {
+			WebPage toPage = new WebPage(BASE_URL, toURL);
+			loadMap.put(toPage.hashCode(),toPage);
+			debugger.println(String.format("\t\tNEW WEBPAGE: %s", toURL));
+			visitQueue.add(new Pair(from,toPage));
+		}
+	}
+
+	private boolean isVisited(String url){
+		return visited.containsKey(WebUtils.combinePaths(BASE_URL, url).hashCode());
+	}
+
+	private boolean isVisited(WebPage page){
+		return visited.containsKey(page.hashCode());
+	}
+	private void visit(WebPage page){
+		visited.put(page.hashCode(),page);
+	}
+
+	private boolean determineValidity(WebPage page){
+		if(topicMap.containsKey(page)) {
+			debugger.println(String.format("\tPREV DETERMINED %s: %s",(topicMap.get(page)==false)?"INVALID":"VALID",
+					page.getURL()));
+			return topicMap.get(page);
+		}else{
+			boolean valid = page.containsTopics(topics);
+			topicMap.put(page,valid);
+			debugger.println(String.format("\tDETERMINED %s: %s",(topicMap.get(page)==false)?"INVALID":"VALID",
+					page.getURL()));
+			return valid;
+		}
+	}
+
 
 	public static void main(String[] args){
 		ArrayList<String> topics = new ArrayList<>();
-		topics.add("Iowa State");
-		topics.add("Cyclones");
-		WikiCrawler wc = new WikiCrawler("/wiki/Iowa_State_University", 100, topics, "WikiISU.txt");
+		//topics.add("Iowa State");
+		//topics.add("Cyclones");
+		topics.add("complexity");
+		topics.add("theory");
+		WikiCrawler wc = new WikiCrawler("/wiki/complexity_theory", 100, topics, "WikiISU.txt");
 		wc.crawl();
 	}
 }
