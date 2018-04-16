@@ -6,6 +6,8 @@ public class WebPage {
     private String URL;
     private String baseURL;
     private String page = null;
+    private static int serverRequests = 0;
+    public static Debugger debugger = null;
 
     public WebPage(String baseURL, String URL) {
         this.URL = URL;
@@ -16,6 +18,16 @@ public class WebPage {
     public void download(){
         page = WebUtils.getPageAsString(baseURL, URL);
         page = page.replaceFirst(".*<[pP]>","");
+        debugger.println("\tDOWNLOAD #"+(++serverRequests));
+        if(serverRequests >= 25){
+            try {
+                debugger.println("\tSLEEPING");
+                Thread.sleep(3000);
+                serverRequests = 0;
+            }catch (Exception e){
+
+            }
+        }
     }
 
     public String getURL() {

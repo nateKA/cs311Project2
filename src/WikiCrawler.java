@@ -42,6 +42,7 @@ public class WikiCrawler
 		try {
 			out = new PrintWriter(new File(fileName));
 			debugger  = new Debugger("debug.txt");
+			WebPage.debugger = debugger;
 		}catch (Exception e){
 			e.printStackTrace();
 		}
@@ -70,6 +71,7 @@ public class WikiCrawler
 		debugger.close();
 	}
 
+
 	private void crawl(WebPage from, WebPage to){
 		if(isVisited(to))return;
 		debugger.println(String.format("VISITING: %s",WebUtils.combinePaths(BASE_URL,to.getURL())));
@@ -91,13 +93,16 @@ public class WikiCrawler
 		String from = edge.getKey();
 		String to = edge.getValue();
 		int hash = (from+to).hashCode();
-		if(edges.containsKey(hash)){
+		if(!edges.containsKey(hash)){
+			edges.put(hash,edge);
 			out.println(String.format("%s %s",from,to));
 			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from,to));
 		}
 	}
 	private boolean isValidEdge(String from, String to){
-		return !from.equals(to) && isValidLink(to);
+		return !edges.containsKey((from+to).hashCode())
+				&& !from.equals(to)
+				&& isValidLink(to);
 	}
 	public boolean isValidLink(String link){
 		return !(link.contains("#") || link.contains(":"));

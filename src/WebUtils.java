@@ -64,7 +64,7 @@ public class WebUtils {
     public static List<String> extractLinks(String page){
         List<String> links = new ArrayList<>();
 
-        Matcher m = Pattern.compile("href=\"(/wiki/.*?)\"").matcher(page);
+        Matcher m = Pattern.compile("href=\"(/wiki/.+?)\"").matcher(page);
         while(m.find()){
             MatchResult result = m.toMatchResult();
             links.add(result.group(1));
