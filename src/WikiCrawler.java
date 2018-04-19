@@ -28,6 +28,7 @@ public class WikiCrawler
 	HashMap<Integer, WebPage> loadMap = new HashMap<>();
 	Queue<Pair<WebPage, WebPage>> visitQueue = new LinkedList<>();
 	HashMap<Integer, Pair<String, String>> edges = new HashMap<>();
+	DirectedGraph<String> graph = new DirectedGraph<>();
 	PrintWriter out = null;
 	Debugger debugger;
 
@@ -94,14 +95,16 @@ public class WikiCrawler
 		String to = edge.getValue();
 		int hash = (from+to).hashCode();
 		if(!edges.containsKey(hash)){
+			graph.addEdge(from,to);
 			edges.put(hash,edge);
 			out.println(String.format("%s %s",from,to));
 			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from,to));
 		}
 	}
 	private boolean isValidEdge(String from, String to){
+
 		return !edges.containsKey((from+to).hashCode())
-				&& !from.equals(to)
+				&& !from.equalsIgnoreCase(to)
 				&& isValidLink(to);
 	}
 	public boolean isValidLink(String link){

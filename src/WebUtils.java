@@ -64,28 +64,18 @@ public class WebUtils {
     public static List<String> extractLinks(String page){
         List<String> links = new ArrayList<>();
 
-        Matcher m = Pattern.compile("href=\"(/wiki/[^/%#:]+?)\"").matcher(page);
-        while(m.find()){
-            MatchResult result = m.toMatchResult();
-            links.add(result.group(1));
-        }
+        Scanner s = new Scanner(page);
 
+        Pattern p = Pattern.compile("href=\"(/wiki/[^/%#:]+?)\"");
+        while(s.hasNextLine()) {
+            String line = s.nextLine();
+            Matcher m = p.matcher(line);
+            while (m.find()) {
+                MatchResult result = m.toMatchResult();
+                links.add(result.group(1));
+            }
+        }
         return links;
-    }
-
-    /**
-     * Page is valid if it contains all topics
-     * @param page
-     * @param topics
-     * @return
-     */
-    public static boolean pageHasTopics(String page, List<String> topics){
-        boolean isValid = true;
-        for(String s: topics){
-            isValid = isValid && page.contains(s);
-            if(isValid == false) break;
-        }
-        return isValid;
     }
 
     /**
