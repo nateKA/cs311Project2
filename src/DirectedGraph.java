@@ -78,9 +78,9 @@ public class DirectedGraph<E> {
 
     static String one = "one";
     static String two = "two";
-    static String three = "three";
-    static String four = "four";
-    static String five = "five";
+    static String three = "three.one";
+    static String four = "three.two";
+    static String five = "four";
 
     public static void main(String[] args){
         DirectedGraph<String> g = new DirectedGraph<>();
