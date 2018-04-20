@@ -23,7 +23,7 @@ public class WebPage {
 
     public void download(){
         page = WebUtils.getPageAsString(baseURL, URL);
-        page = page.replaceFirst(".*<[pP]>","");
+        page = page.replaceFirst("[\\s\\S]*?<p>","");
         if(debugger!=null)
         debugger.println("\tDOWNLOAD #"+(++serverRequests));
         if(serverRequests >= 25){
@@ -55,33 +55,20 @@ public class WebPage {
         return WebUtils.extractLinks(page);
     }
 
-    /**
-     * Finds the topics and puts them into a hashMap for instant access
-     */
-    private void extractTopics(){
-        Matcher m = Pattern.compile("<li class=\"toclevel-\\d+ tocsection-\\d+\"><a href=\"#(.*)\">").matcher(page);
-        while(m.find()){
-            MatchResult result = m.toMatchResult();
-            String topic = result.group(1);
-            topics.put(topic.hashCode(),topic);
-        }
-    }
+
 
     /**
      * Page is valid if it contains all topics
-     * @param page
      * @param topics
      * @return
      */
     public boolean containsTopics(ArrayList<String> topics){
         if(topics == null || topics.size() == 0) return true;
         if(page == null)download();
-        if(this.topics.size() == 0)extractTopics();
 
         boolean contains = true;
         for(String topic: topics){
-            String value = this.topics.get(topic.hashCode());
-            contains = contains && value != null && value.equalsIgnoreCase(topic);
+            contains = contains && topics.contains(topic);
 
             if(!contains)break;
         }
@@ -98,7 +85,7 @@ public class WebPage {
         WebPage page = new WebPage(WikiCrawler.BASE_URL,"/wiki/Complexity");
         page.download();
         try{
-            PrintWriter pw = new PrintWriter("complexity");
+            PrintWriter pw = new PrintWriter("complexity.txt");
             pw.println(page.getPage());
             pw.close();
         }catch (Exception e){

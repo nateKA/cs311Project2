@@ -26,7 +26,7 @@ public class WikiCrawler
 	HashMap<Integer, WebPage> visited = new HashMap<>();
 	HashMap<Integer, Boolean> topicMap = new HashMap<>();
 	HashMap<Integer, WebPage> loadMap = new HashMap<>();
-	Queue<Pair<WebPage, WebPage>> visitQueue = new LinkedList<>();
+	Queue<WebPage> visitQueue = new LinkedList<>();
 	HashMap<Integer, Pair<String, String>> edges = new HashMap<>();
 	DirectedGraph<String> graph = new DirectedGraph<>();
 	PrintWriter out = null;
@@ -52,53 +52,50 @@ public class WikiCrawler
 	public void crawl() {
 		// implementation
 		WebPage seedPage = new WebPage(BASE_URL,seedURL);
-		debugger.println(String.format("VISITING: %s",WebUtils.combinePaths(BASE_URL,seedURL)));
-		if(determineValidity(seedPage)){
-			for(String link: seedPage.getLinks()){
-				if(!isValidEdge(seedPage.getURL(), link))continue;
-				addToQueue(seedPage, link);
-				debugger.println(String.format("\tAdded to QUEUE: %s -> %s",seedPage.getURL(), link));
-			}
-		}
+		visitQueue.add(seedPage);
 
 		while(!visitQueue.isEmpty()){
-			Pair<WebPage, WebPage> head = visitQueue.remove();
-			WebPage from = head.getKey();
-			WebPage to = head.getValue();
-			crawl(from,to);
+			crawl(visitQueue.remove());
 		}
+
 
 		out.close();
 		debugger.close();
 	}
 
+	private void crawl(WebPage page){
+		debugger.printf("VISITING: %s",page.getURL());
+		if(isValidLink(page.getURL()) && determineValidity(page)){
+			debugger.printf("\tisValid = TRUE");
+			for(String link: page.getLinks()){
+				WebPage linkedPage = new WebPage(BASE_URL,link);
 
-	private void crawl(WebPage from, WebPage to){
-		if(isVisited(to))return;
-		debugger.println(String.format("VISITING: %s",WebUtils.combinePaths(BASE_URL,to.getURL())));
-		visit(to);
+				boolean goodPage = determineValidity(linkedPage);
+				if(graph.size() < max && goodPage) {
+					graph.addNode(linkedPage.getURL());
+					visitQueue.add(linkedPage);
+					debugger.printf("\tADDED NODE: %s",link);
+				}
 
-		if(determineValidity(to)){
-			addEdge(new Pair(from.getURL(),to.getURL()));
+				if(goodPage){
+					addEdge(page,linkedPage);
+				}
 
-			for(String link: to.getLinks()){
-				if(!isValidEdge(to.getURL(), link))continue;
-
-				addToQueue(to,link);
-				debugger.println(String.format("\tAdded to QUEUE: %s -> %s",to.getURL(), link));
 			}
+		}else{
+
+			debugger.printf("\tisValid = FALSE");
 		}
 	}
 
-	private void addEdge(Pair<String,String> edge){
-		String from = edge.getKey().toLowerCase();
-		String to = edge.getValue().toLowerCase();
-		int hash = (from+to).hashCode();
-		if(!edges.containsKey(hash)){
-			edges.put(hash,edge);
-			out.println(String.format("%s %s",from,to));
-			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from,to));
-			graph.addEdge(from,to);
+
+	private void addEdge(WebPage from, WebPage to){
+		int hash = (from.getURL()+to.getURL()).hashCode();
+		if(isValidEdge(from.getURL(),to.getURL())){
+			edges.put(hash,null);
+			out.println(String.format("%s %s",from.getURL(),to.getURL()));
+			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from.getURL(),to.getURL()));
+			graph.addEdge(from.getURL(),to.getURL());
 		}
 	}
 	private boolean isValidEdge(String from, String to){
@@ -111,18 +108,6 @@ public class WikiCrawler
 		return !(link.contains("#") || link.contains(":"));
 	}
 
-	private void addToQueue(WebPage from, String toURL){
-		if(graph.size() >= max)return;
-		if(loadMap.containsKey(WebUtils.combinePaths(BASE_URL,toURL).hashCode())) {
-			debugger.println(String.format("\t\tLOADED %s", toURL));
-			visitQueue.add(new Pair(from, loadMap.get(WebUtils.combinePaths(BASE_URL, toURL).hashCode())));
-		}else {
-			WebPage toPage = new WebPage(BASE_URL, toURL);
-			loadMap.put(toPage.hashCode(),toPage);
-			debugger.println(String.format("\t\tNEW WEBPAGE: %s", toURL));
-			visitQueue.add(new Pair(from,toPage));
-		}
-	}
 
 	private boolean isVisited(String url){
 		return visited.containsKey(WebUtils.combinePaths(BASE_URL, url).hashCode());
@@ -136,10 +121,21 @@ public class WikiCrawler
 	}
 
 	private boolean determineValidity(WebPage page){
+
+		if(graph.size() >= max){
+			if(graph.contains(page.getURL())){
+
+				debugger.printf("\tGRAPH CONTAINS. Approved: %s",page.getURL());
+				return true;
+			}
+			debugger.printf("\tGRAPH FULL!! Rejected: %s",page.getURL());
+			return false;
+		}
+
 		if(topicMap.containsKey(page.hashCode())) {
-			debugger.println(String.format("\tPREV DETERMINED %s: %s",(topicMap.get(page)==false)?"INVALID":"VALID",
+			debugger.println(String.format("\tPREV DETERMINED %s: %s",(topicMap.get(page.hashCode())==false)?"INVALID":"VALID",
 					page.getURL()));
-			return topicMap.get(page);
+			return topicMap.get(page.hashCode());
 		}else{
 			boolean valid = page.containsTopics(topics);
 			topicMap.put(page.hashCode(),valid);
@@ -154,7 +150,7 @@ public class WikiCrawler
 		ArrayList<String> topics = new ArrayList<>();
 		//topics.add("Iowa State");
 		//topics.add("Cyclones");
-		WikiCrawler wc = new WikiCrawler("/wiki/complexity_theory", 20, topics, "WikiISU.txt");
+		WikiCrawler wc = new WikiCrawler("/wiki/Complexity_theory", 20, topics, "WikiISU.txt");
 		wc.crawl();
 	}
 }

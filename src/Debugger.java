@@ -15,6 +15,11 @@ public class Debugger {
         System.out.println(str);
         out.println(str);
     }
+
+    public void printf(String str, Object...objs){
+        System.out.printf(str+"\n",objs);
+        out.printf(str+"\n",objs);
+    }
     public void close(){
         out.close();
     }

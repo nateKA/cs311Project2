@@ -235,10 +235,20 @@ public class NetworkInfluence
 
 	public ArrayList<String> mostInfluentialSubModular(int k)
 	{
-		// implementation
+		List<String> nodes = graph.getNodes();
+		HashMap<String,Float> infMap = new HashMap<>();
+		ArrayList<String> kNodes = new ArrayList<>();
 
-		// replace this:
-		return null;
+		for(String v: nodes){
+			float inf = influence(v);
+			infMap.put(v,inf);
+
+			if(kNodes.size() == 0 || inf >= infMap.get(kNodes.get(0))){
+
+			}
+		}
+
+		return kNodes;
 	}
 
 
