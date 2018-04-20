@@ -61,7 +61,7 @@ public class WikiCrawler
 			}
 		}
 
-		while(edges.size() < max && !visitQueue.isEmpty()){
+		while(!visitQueue.isEmpty()){
 			Pair<WebPage, WebPage> head = visitQueue.remove();
 			WebPage from = head.getKey();
 			WebPage to = head.getValue();
@@ -91,14 +91,14 @@ public class WikiCrawler
 	}
 
 	private void addEdge(Pair<String,String> edge){
-		String from = edge.getKey();
-		String to = edge.getValue();
+		String from = edge.getKey().toLowerCase();
+		String to = edge.getValue().toLowerCase();
 		int hash = (from+to).hashCode();
 		if(!edges.containsKey(hash)){
-			graph.addEdge(from,to);
 			edges.put(hash,edge);
 			out.println(String.format("%s %s",from,to));
 			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from,to));
+			graph.addEdge(from,to);
 		}
 	}
 	private boolean isValidEdge(String from, String to){
@@ -112,6 +112,7 @@ public class WikiCrawler
 	}
 
 	private void addToQueue(WebPage from, String toURL){
+		if(graph.size() >= max)return;
 		if(loadMap.containsKey(WebUtils.combinePaths(BASE_URL,toURL).hashCode())) {
 			debugger.println(String.format("\t\tLOADED %s", toURL));
 			visitQueue.add(new Pair(from, loadMap.get(WebUtils.combinePaths(BASE_URL, toURL).hashCode())));
@@ -153,7 +154,7 @@ public class WikiCrawler
 		ArrayList<String> topics = new ArrayList<>();
 		//topics.add("Iowa State");
 		//topics.add("Cyclones");
-		WikiCrawler wc = new WikiCrawler("/wiki/complexity_theory", 100, topics, "WikiISU.txt");
+		WikiCrawler wc = new WikiCrawler("/wiki/complexity_theory", 20, topics, "WikiISU.txt");
 		wc.crawl();
 	}
 }

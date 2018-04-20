@@ -76,6 +76,10 @@ public class DirectedGraph<E> {
         BFS(bfs,visited,visitQueue);
     }
 
+    public int size(){
+        return nodes.size();
+    }
+
     static String one = "one";
     static String two = "two";
     static String three = "three.one";
