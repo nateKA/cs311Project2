@@ -282,10 +282,17 @@ public class NetworkInfluence
 	}
 
 	public static void main(String[] args){
-		NetworkInfluence net = new NetworkInfluence("gThrones.txt");
+		NetworkInfluence net = new NetworkInfluence("graph.txt");
+
+		ArrayList<String> set = new ArrayList<>();
+		set.add("a");
+		set.add("c");
+
+		System.out.println(net.influence(set));
+
 
 		for(String s: net.mostInfluentialSubModular(4)){
-			System.out.println(s);
+			//System.out.println(s);
 			for(Integer i: net.graph.getEdges(s.hashCode())){
 				//System.out.println("\t"+net.graph.getNode(i));
 			}
