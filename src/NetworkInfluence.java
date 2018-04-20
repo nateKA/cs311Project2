@@ -180,10 +180,23 @@ public class NetworkInfluence
 
 	public float influence(ArrayList<String> s)
 	{
-		// implementation
+		float influence = 0;
 
-		// replace this:
-		return -1f;
+		for(String u: s) {
+			String v = getDifferentNode(u);
+			HashMap<String, Object> vals = dijktarsShortestPath(u, v);
+			HashMap<Integer, Integer> dists = (HashMap<Integer, Integer>) vals.get("distMap");
+			Iterator<Integer> iter = dists.keySet().iterator();
+
+			while (iter.hasNext()) {
+				int key = iter.next();
+				if (key == u.hashCode() ) continue;
+
+				int dist = distance(s,graph.getNode(key));
+				influence += dist / Math.pow(2, dist);
+			}
+		}
+		return influence;
 	}
 
 	public ArrayList<String> mostInfluentialDegree(int k)
@@ -238,57 +251,44 @@ public class NetworkInfluence
 		List<String> nodes = graph.getNodes();
 		HashMap<String,Float> infMap = new HashMap<>();
 		ArrayList<String> kNodes = new ArrayList<>();
+		ArrayList<String> intermediate = new ArrayList<>();
+		String mostInf = mostInfluentialModular(1).get(0);
+		kNodes.add(mostInf);
+		intermediate.add(mostInf);
+		nodes.remove(mostInf);
 
-		for(String v: nodes){
-			float inf = influence(v);
-			infMap.put(v,inf);
+		for(int i = 1; i < k; i++){
+			float highest = 0;
+			String lastHighest = nodes.get(0);
+			for(String u: nodes) {
+				intermediate.add(u);
+				float newInf = influence(intermediate);
+				intermediate.remove(u);
 
-			if(kNodes.size() == 0 || inf >= infMap.get(kNodes.get(0))){
-
+				if(newInf >= highest){
+					highest = newInf;
+					lastHighest = u;
+				}
 			}
+
+			intermediate.add(lastHighest);
+			kNodes.add(lastHighest);
+			nodes.remove(lastHighest);
 		}
+
+
 
 		return kNodes;
 	}
 
-
-	private void printMostInfluencial(int k){
-		for(String s: mostInfluentialModular(k)){
-			System.out.printf("%s = %f\n",s, influence(s));
-		}
-	}
-
-	private void printMostInfluencialDegree(int k){
-		for(String s: mostInfluentialDegree(k)){
-			System.out.printf("%s = %d\n",s, outDegree(s));
-		}
-	}
-
-	private void printPaths(String character){
-		for(String v: graph.getNodes()){
-			if(character.equalsIgnoreCase(v))continue;
-
-			ArrayList<String> path = shortestPath(character,v);
-			if(path == null)System.out.printf("%s != %s",character,v);
-			else {
-				boolean first = true;
-				for (String s : path) {
-					if(!first){
-						System.out.print(" -> ");
-					}
-					first = false;
-					System.out.print(s);
-				}
-			}
-			System.out.println();
-		}
-	}
-
-
 	public static void main(String[] args){
-		NetworkInfluence ni = new NetworkInfluence("graph.txt");
+		NetworkInfluence net = new NetworkInfluence("gThrones.txt");
 
-		ni.printMostInfluencial(ni.graph.size());
-
+		for(String s: net.mostInfluentialSubModular(4)){
+			System.out.println(s);
+			for(Integer i: net.graph.getEdges(s.hashCode())){
+				//System.out.println("\t"+net.graph.getNode(i));
+			}
+		}
 	}
 }
