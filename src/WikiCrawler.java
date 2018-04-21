@@ -160,13 +160,13 @@ public class WikiCrawler
 		}
 	}
 
-	public static void main(String[] args){
-		WikiCrawler cs = new WikiCrawler("/wiki/Computer Science",100,new ArrayList<>(),"WikiCS.txt");
-		cs.crawl();
-
-		NetworkInfluence net = new NetworkInfluence("WikiCS.txt");
-		for(String s: net.mostInfluentialModular(10)){
-			System.out.println(s);
-		}
-	}
+//	public static void main(String[] args){
+//		WikiCrawler cs = new WikiCrawler("/wiki/Computer Science",100,new ArrayList<>(),"WikiCS.txt");
+//		cs.crawl();
+//
+//		NetworkInfluence net = new NetworkInfluence("WikiCS.txt");
+//		for(String s: net.mostInfluentialModular(10)){
+//			System.out.println(s);
+//		}
+//	}
 }
