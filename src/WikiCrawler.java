@@ -67,6 +67,7 @@ public class WikiCrawler
 		//Determine if page meets requirements
 		if(isValidLink(page.getURL()) && determineValidity(page)){
 
+			System.out.printf("Visiting %s\n",page.getURL());
 			//
 			for(String link: page.getLinks()){
 				WebPage linkedPage = new WebPage(BASE_URL,link);
@@ -98,6 +99,7 @@ public class WikiCrawler
 			edges.put(hash,null);
 			out.println(String.format("%s %s",from.getURL(),to.getURL()));
 			graph.addEdge(from.getURL(),to.getURL());
+			System.out.printf("\tEDGE %s %s\n",from.getURL(),to.getURL());
 		}
 	}
 
@@ -158,4 +160,13 @@ public class WikiCrawler
 		}
 	}
 
+	public static void main(String[] args){
+		WikiCrawler cs = new WikiCrawler("/wiki/Computer Science",100,new ArrayList<>(),"WikiCS.txt");
+		cs.crawl();
+
+		NetworkInfluence net = new NetworkInfluence("WikiCS.txt");
+		for(String s: net.mostInfluentialModular(10)){
+			System.out.println(s);
+		}
+	}
 }

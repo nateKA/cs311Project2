@@ -25,12 +25,14 @@ public class WebPage {
         page = page.replaceFirst("[\\s\\S]*?<p>","");
         if(serverRequests >= 25){
             try {
+                System.out.println("\tSLEEPING");
                 Thread.sleep(3000);
                 serverRequests = 0;
             }catch (Exception e){
 
             }
         }
+        serverRequests++;
     }
 
     public String getURL() {
