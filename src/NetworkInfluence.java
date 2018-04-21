@@ -162,7 +162,6 @@ public class NetworkInfluence
 
 		while(iter.hasNext()){
 			int key = iter.next();
-			if(key == u.hashCode())continue;
 
 			influence += 1 / Math.pow(2,dists.get(key));
 		}
