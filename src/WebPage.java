@@ -12,7 +12,6 @@ public class WebPage {
     private String baseURL;
     private String page = null;
     private static int serverRequests = 0;
-    public static Debugger debugger = null;
     private HashMap<Integer, String> topics = new HashMap<>();
 
     public WebPage(String baseURL, String URL) {
@@ -24,12 +23,8 @@ public class WebPage {
     public void download(){
         page = WebUtils.getPageAsString(baseURL, URL);
         page = page.replaceFirst("[\\s\\S]*?<p>","");
-        if(debugger!=null)
-        debugger.println("\tDOWNLOAD #"+(++serverRequests));
         if(serverRequests >= 25){
             try {
-                if(debugger!=null)
-                debugger.println("\tSLEEPING");
                 Thread.sleep(3000);
                 serverRequests = 0;
             }catch (Exception e){

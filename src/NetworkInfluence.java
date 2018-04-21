@@ -100,15 +100,16 @@ public class NetworkInfluence
 
 	private void shortestPath(HashMap<Integer,Boolean> visited, Queue<Integer> visitQueue,
 							  HashMap<Integer,Integer> previous, HashMap<Integer,Integer> shortestDist){
+
+		//qucik recursion
 		if(visitQueue.isEmpty()) return;
 		Integer n = visitQueue.remove();
 
+		//get Node as String and visit
 		String node = graph.getNode(n);
-		try {
-			visited.put(node.hashCode(), true);
-		}catch(Exception e){
-			e.printStackTrace();
-		}
+		visited.put(node.hashCode(), true);
+
+		//iterate through node's edges
 		for(Integer hashCode: graph.getEdges(node.hashCode())){
 			if(visited.containsKey(hashCode))continue;
 
@@ -122,11 +123,11 @@ public class NetworkInfluence
 			int oldDist = shortestDist.containsKey(hashCode)?shortestDist.get(hashCode):-1;
 			if(oldDist > newDist || oldDist == -1){
 				shortestDist.put(hashCode,newDist);
-
 				//update previous
 				previous.put(hashCode,node.hashCode());
 			}
 
+			//if not visited, visit
 			if(!visited.containsKey(hashCode))
 			visitQueue.add(hashCode);
 		}
@@ -136,7 +137,6 @@ public class NetworkInfluence
 
 	public int distance(String u, String v)
 	{
-
 		return shortestPath(u,v).size()-1;
 	}
 
@@ -160,6 +160,7 @@ public class NetworkInfluence
 		HashMap<Integer,Integer> dists = (HashMap<Integer,Integer>)vals.get("distMap");
 		Iterator<Integer> iter = dists.keySet().iterator();
 
+		//iterate through every node in the graph
 		while(iter.hasNext()){
 			int key = iter.next();
 
@@ -168,6 +169,11 @@ public class NetworkInfluence
 		return influence;
 	}
 
+	/**
+	 * Gets a node from the graph that isn't the provided node
+	 * @param u
+	 * @return
+	 */
 	private String getDifferentNode(String u){
 
 		List<String> nodes = graph.getNodes();
@@ -183,14 +189,15 @@ public class NetworkInfluence
 	{
 		float influence = 0;
 
+		//iterate through every node in graph
+		for(String u : graph.getNodes()) {
 
-			for(String u : graph.getNodes()) {
+			int dist = distance(s,u);
+			if(dist == -1)continue;
 
-				int dist = distance(s,u);
-				if(dist == -1)continue;
-				double calc = 1 / Math.pow(2, dist);
-				influence += calc;
-			}
+			double calc = 1 / Math.pow(2, dist);
+			influence += calc;
+		}
 
 
 		return influence;
@@ -202,6 +209,7 @@ public class NetworkInfluence
 		List<String> nodes = graph.getNodes();
 		ArrayList<String> kNodes = new ArrayList<>();
 
+		//Sort the degrees
 		Collections.sort(nodes, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
@@ -209,6 +217,7 @@ public class NetworkInfluence
 			}
 		});
 
+		//populate return array
 		for(int i = 0; i < k; i++){
 			kNodes.add(nodes.get(i));
 		}
@@ -222,10 +231,12 @@ public class NetworkInfluence
 		HashMap<String,Float> infMap = new HashMap<>();
 		ArrayList<String> kNodes = new ArrayList<>();
 
+		//calculate influence of every node
 		for(String u: nodes){
 			infMap.put(u,influence(u));
 		}
 
+		//sort nodes
 		Collections.sort(nodes, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
@@ -236,6 +247,7 @@ public class NetworkInfluence
 			}
 		});
 
+		//populate return array
 		for(int i = 0; i < k; i++){
 			kNodes.add(nodes.get(i));
 		}
@@ -245,10 +257,16 @@ public class NetworkInfluence
 
 	public ArrayList<String> mostInfluentialSubModular(int k)
 	{
+		//contains all nodes in graph
 		List<String> nodes = graph.getNodes();
-		HashMap<String,Float> infMap = new HashMap<>();
+
+		//return array
 		ArrayList<String> kNodes = new ArrayList<>();
+
+		//used for algorithm
 		ArrayList<String> intermediate = new ArrayList<>();
+
+		//The first return node is the most influencial node
 		String mostInf = mostInfluentialModular(1).get(0);
 		kNodes.add(mostInf);
 		intermediate.add(mostInf);
@@ -258,21 +276,24 @@ public class NetworkInfluence
 			float highest = 0;
 			String lastHighest = nodes.get(0);
 			for(String u: nodes) {
+
+				//Add u to our sub network and calculate his contribution to influence
 				intermediate.add(u);
 				float newInf = influence(intermediate);
 				intermediate.remove(u);
 
+				//if u is more influencial than those who can before him
 				if(newInf >= highest){
 					highest = newInf;
 					lastHighest = u;
 				}
 			}
 
+			//Found highest contributor for this iteration
 			intermediate.add(lastHighest);
 			kNodes.add(lastHighest);
 			nodes.remove(lastHighest);
 		}
-
 
 
 		return kNodes;

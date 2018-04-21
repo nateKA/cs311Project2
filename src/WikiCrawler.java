@@ -30,7 +30,6 @@ public class WikiCrawler
 	HashMap<Integer, Pair<String, String>> edges = new HashMap<>();
 	DirectedGraph<String> graph = new DirectedGraph<>();
 	PrintWriter out = null;
-	Debugger debugger;
 
 
 
@@ -42,8 +41,6 @@ public class WikiCrawler
 		this.topics = topics;
 		try {
 			out = new PrintWriter(new File(fileName));
-			debugger  = new Debugger("debug.txt");
-			WebPage.debugger = debugger;
 		}catch (Exception e){
 			e.printStackTrace();
 		}
@@ -60,21 +57,23 @@ public class WikiCrawler
 
 
 		out.close();
-		debugger.close();
 	}
 
+
 	private void crawl(WebPage page){
-		debugger.printf("VISITING: %s",page.getURL());
+
+		//Determine if page meets requirements
 		if(isValidLink(page.getURL()) && determineValidity(page)){
-			debugger.printf("\tisValid = TRUE");
+
+			//
 			for(String link: page.getLinks()){
 				WebPage linkedPage = new WebPage(BASE_URL,link);
 
+				//O(1) or O(downloadTime)
 				boolean goodPage = determineValidity(linkedPage);
 				if(graph.size() < max && goodPage) {
 					graph.addNode(linkedPage.getURL());
 					visitQueue.add(linkedPage);
-					debugger.printf("\tADDED NODE: %s",link);
 				}
 
 				if(goodPage){
@@ -82,65 +81,77 @@ public class WikiCrawler
 				}
 
 			}
-		}else{
-
-			debugger.printf("\tisValid = FALSE");
 		}
 	}
 
 
+	/**
+	 * O(1)
+	 * @param from
+	 * @param to
+	 */
 	private void addEdge(WebPage from, WebPage to){
 		int hash = (from.getURL()+to.getURL()).hashCode();
 		if(isValidEdge(from.getURL(),to.getURL())){
 			edges.put(hash,null);
 			out.println(String.format("%s %s",from.getURL(),to.getURL()));
-			debugger.println(String.format("EDGE #%d: %s -> %s",edges.size(),from.getURL(),to.getURL()));
 			graph.addEdge(from.getURL(),to.getURL());
 		}
 	}
+
+	/**
+	 * Probably takes 2n + c < O(n)
+	 * @param from
+	 * @param to
+	 * @return
+	 */
 	private boolean isValidEdge(String from, String to){
 
-		return !edges.containsKey((from+to).hashCode())
-				&& !from.equalsIgnoreCase(to)
-				&& isValidLink(to);
+		return !edges.containsKey((from+to).hashCode())// O(1)
+				&& !from.equalsIgnoreCase(to) // O(n)
+				&& isValidLink(to); //O(n)
 	}
+
+	/**
+	 * O(n) where n = link.size
+	 * @param link
+	 * @return
+	 */
 	public boolean isValidLink(String link){
 		return !(link.contains("#") || link.contains(":"));
 	}
 
 
-	private boolean isVisited(String url){
-		return visited.containsKey(WebUtils.combinePaths(BASE_URL, url).hashCode());
-	}
 
-	private boolean isVisited(WebPage page){
-		return visited.containsKey(page.hashCode());
-	}
-	private void visit(WebPage page){
-		visited.put(page.hashCode(),page);
-	}
 
+	/**
+	 * Will determine if a page is valid
+	 * takes time either
+	 * 		O(1) - page was downloaded previously
+	 * 		O(downloadTime) - page needs to be downloaded
+	 *
+	 * 	in the end O(n*downloadTime) where n = nodes in graph
+	 * @param page
+	 * @return
+	 */
 	private boolean determineValidity(WebPage page){
+
 
 		if(graph.size() >= max){
 			if(graph.contains(page.getURL())){
 
-				debugger.printf("\tGRAPH CONTAINS. Approved: %s",page.getURL());
 				return true;
 			}
-			debugger.printf("\tGRAPH FULL!! Rejected: %s",page.getURL());
 			return false;
 		}
 
+		//page has been downloaded
 		if(topicMap.containsKey(page.hashCode())) {
-			debugger.println(String.format("\tPREV DETERMINED %s: %s",(topicMap.get(page.hashCode())==false)?"INVALID":"VALID",
-					page.getURL()));
 			return topicMap.get(page.hashCode());
 		}else{
+			//page needs to be downloaded
 			boolean valid = page.containsTopics(topics);
 			topicMap.put(page.hashCode(),valid);
-			debugger.println(String.format("\tDETERMINED %s: %s",(valid)?"INVALID":"VALID",
-					page.getURL()));
 			return valid;
 		}
 	}
