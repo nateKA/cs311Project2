@@ -59,6 +59,7 @@ public class NetworkInfluence
 		HashMap<Integer, Boolean> visited = new HashMap<>();
 		HashMap<Integer,Integer> previous = new HashMap<>();
 		HashMap<Integer, Integer> shortestDist = new HashMap<>();
+		HashMap<Integer,Integer> atDistCount = new HashMap<>();
 		ArrayList<String> path = new ArrayList<>();
 		Queue<Integer> visitQueue = new LinkedList<>();
 		returnVals.put("distMap",shortestDist);
@@ -72,6 +73,7 @@ public class NetworkInfluence
 
 		visitQueue.add(u.hashCode());
 		shortestPath(visited,visitQueue,previous,shortestDist);
+
 
 		return returnVals;
 	}
@@ -162,7 +164,7 @@ public class NetworkInfluence
 			int key = iter.next();
 			if(key == u.hashCode())continue;
 
-			influence += dists.get(key) / Math.pow(2,dists.get(key));
+			influence += 1 / Math.pow(2,dists.get(key));
 		}
 		return influence;
 	}
@@ -182,20 +184,16 @@ public class NetworkInfluence
 	{
 		float influence = 0;
 
-		for(String u: s) {
-			String v = getDifferentNode(u);
-			HashMap<String, Object> vals = dijktarsShortestPath(u, v);
-			HashMap<Integer, Integer> dists = (HashMap<Integer, Integer>) vals.get("distMap");
-			Iterator<Integer> iter = dists.keySet().iterator();
 
-			while (iter.hasNext()) {
-				int key = iter.next();
-				if (key == u.hashCode() ) continue;
+			for(String u : graph.getNodes()) {
 
-				int dist = distance(s,graph.getNode(key));
-				influence += dist / Math.pow(2, dist);
+				int dist = distance(s,u);
+				if(dist == -1)continue;
+				double calc = 1 / Math.pow(2, dist);
+				influence += calc;
 			}
-		}
+
+
 		return influence;
 	}
 
@@ -288,14 +286,17 @@ public class NetworkInfluence
 		set.add("a");
 		set.add("c");
 
+		for(String s : net.graph.getNodes()){
+			System.out.println(s+" - "+s.hashCode());
+		}
 		System.out.println(net.influence(set));
 
 
-		for(String s: net.mostInfluentialSubModular(4)){
-			//System.out.println(s);
-			for(Integer i: net.graph.getEdges(s.hashCode())){
-				//System.out.println("\t"+net.graph.getNode(i));
-			}
-		}
+//		for(String s: net.mostInfluentialSubModular(4)){
+//			//System.out.println(s);
+//			for(Integer i: net.graph.getEdges(s.hashCode())){
+//				//System.out.println("\t"+net.graph.getNode(i));
+//			}
+//		}
 	}
 }
