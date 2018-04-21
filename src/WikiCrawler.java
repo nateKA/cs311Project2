@@ -156,12 +156,4 @@ public class WikiCrawler
 		}
 	}
 
-
-	public static void main(String[] args){
-		ArrayList<String> topics = new ArrayList<>();
-		//topics.add("Iowa State");
-		//topics.add("Cyclones");
-		WikiCrawler wc = new WikiCrawler("/wiki/Complexity_theory", 20, topics, "WikiISU.txt");
-		wc.crawl();
-	}
 }
