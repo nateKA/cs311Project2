@@ -47,6 +47,9 @@ public class WikiCrawler
 	}
 
 	public void crawl() {
+
+		out.println(max);
+
 		// implementation
 		WebPage seedPage = new WebPage(BASE_URL,seedURL);
 		visitQueue.add(seedPage);
@@ -54,7 +57,6 @@ public class WikiCrawler
 		while(!visitQueue.isEmpty()){
 			crawl(visitQueue.remove());
 		}
-
 
 		out.close();
 	}
