@@ -11,7 +11,6 @@
 * @author Hugh Potter
 */
 
-import javafx.util.Pair;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -160,6 +159,31 @@ public class WikiCrawler
 		}
 	}
 
+	class Pair<E,T>{
+		E key;
+		T value;
+		public Pair(E k, T v){
+			key = k;
+			value = v;
+		}
+
+		public E getKey() {
+			return key;
+		}
+
+		public void setKey(E key) {
+			this.key = key;
+		}
+
+		public T getValue() {
+			return value;
+		}
+
+		public void setValue(T value) {
+			this.value = value;
+		}
+	}
+
 //	public static void main(String[] args){
 //		WikiCrawler cs = new WikiCrawler("/wiki/Computer Science",100,new ArrayList<>(),"WikiCS.txt");
 //		cs.crawl();
@@ -170,3 +194,4 @@ public class WikiCrawler
 //		}
 //	}
 }
+

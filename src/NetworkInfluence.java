@@ -213,6 +213,7 @@ public class NetworkInfluence
 		Collections.sort(nodes, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
+
 				return graph.getEdges(o2).size() -  graph.getEdges(o1).size();
 			}
 		});
